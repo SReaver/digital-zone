@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/digital-zone/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/digital-zone/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/digital-zone",
+  "projects": {
+    "digital-zone": {
+      "type": "application",
+      "root": "apps/digital-zone",
+      "entryFile": "main",
+      "sourceRoot": "apps/digital-zone/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/digital-zone/tsconfig.app.json"
+      }
+    },
+    "provider-one": {
+      "type": "application",
+      "root": "apps/provider-one",
+      "entryFile": "main",
+      "sourceRoot": "apps/provider-one/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/provider-one/tsconfig.app.json"
+      }
+    },
+    "provider-two": {
+      "type": "application",
+      "root": "apps/provider-two",
+      "entryFile": "main",
+      "sourceRoot": "apps/provider-two/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/provider-two/tsconfig.app.json"
+      }
+    }
+  }
+}
