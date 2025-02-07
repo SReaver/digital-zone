@@ -1,20 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { runMigrations } from './database/migration.helper';
 
 async function bootstrap() {
+  await runMigrations();
+
   const app = await NestFactory.create(AppModule);
-  
+
   const config = new DocumentBuilder()
-  .setTitle('Product Price Aggregator')
-  .setDescription('Product Price Aggregator API description')
-  .setVersion('1.0')
-  .addTag('Products')
-  .build();
+    .setTitle('Product Price Aggregator')
+    .setDescription('Product Price Aggregator API description')
+    .setVersion('1.0')
+    .addTag('Products')
+    .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(3000);
 }
 bootstrap();
