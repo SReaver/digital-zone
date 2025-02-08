@@ -36,6 +36,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/provider-two/tsconfig.app.json"
       }
+    },
+    "provider-three": {
+      "type": "application",
+      "root": "apps/provider-three",
+      "entryFile": "main",
+      "sourceRoot": "apps/provider-three/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/provider-three/tsconfig.app.json"
+      }
     }
   }
 }

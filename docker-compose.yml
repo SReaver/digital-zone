@@ -33,7 +33,7 @@ services:
       - ./pg_data/db-zone:/var/lib/postgresql/data
       - ./initial-data:/docker-entrypoint-initdb.d
     ports:
-      - 5430:5432
+      - 5432:5432
 
   provider-one:
     build:
@@ -45,30 +45,19 @@ services:
     ports:
       - 3001:3001
     environment:
-      - POSTGRES_HOST=provider-one-db
+      - POSTGRES_HOST=digital-zone-db
       - POSTGRES_PORT=5432
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=products
-      - DATABASE_URL=postgresql://postgres:postgres@provider-one-db:5432/products
+      - POSTGRES_DB=provider-one-db
+      - DATABASE_URL=postgresql://postgres:postgres@digital-zone-db:5432/provider-one-db
     volumes:
       - ./libs:/usr/src/app/libs
       - ./package.json:/usr/src/app/package.json
       - ./tsconfig.json:/usr/src/app/tsconfig.json
       - ./apps/provider-one:/usr/src/app/apps/provider-one
     depends_on:
-      - provider-one-db
-  provider-one-db:
-    image: postgres:13
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=products
-    volumes:
-      - ./pg_data/db-one:/var/lib/postgresql/data
-      - ./initial-data:/docker-entrypoint-initdb.d
-    ports:
-      - 5431:5432
+      - digital-zone-db
 
   provider-two:
     build:
@@ -80,29 +69,41 @@ services:
     ports:
       - 3002:3002
     environment:
-      - POSTGRES_HOST=provider-two-db
+      - POSTGRES_HOST=digital-zone-db
       - POSTGRES_PORT=5432
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=products
-      - DATABASE_URL=postgresql://postgres:postgres@provider-two-db:5432/products
+      - POSTGRES_DB=provider-two-db
+      - DATABASE_URL=postgresql://postgres:postgres@digital-zone-db:5432/provider-two-db
     volumes:
       - ./libs:/usr/src/app/libs
       - ./package.json:/usr/src/app/package.json
       - ./tsconfig.json:/usr/src/app/tsconfig.json
       - ./apps/provider-two:/usr/src/app/apps/provider-two
     depends_on:
-      - provider-two-db
-  provider-two-db:
-    image: postgres:13
+      - digital-zone-db
+  provider-three:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - APP_NAME=provider-three
+    command: [ "sh", "-c", "npx prisma generate --schema=./apps/provider-three/prisma/schema.prisma && npm run start:dev -- provider-three" ]
+    ports:
+      - 3003:3003
     environment:
+      - POSTGRES_HOST=digital-zone-db
+      - POSTGRES_PORT=5432
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=products
+      - POSTGRES_DB=provider-three-db
+      - DATABASE_URL=postgresql://postgres:postgres@digital-zone-db:5432/provider-three-db
     volumes:
-      - ./pg_data/db-two:/var/lib/postgresql/data
-      - ./initial-data:/docker-entrypoint-initdb.d
-    ports:
-      - 5432:5432
+      - ./libs:/usr/src/app/libs
+      - ./package.json:/usr/src/app/package.json
+      - ./tsconfig.json:/usr/src/app/tsconfig.json
+      - ./apps/provider-three:/usr/src/app/apps/provider-three
+    depends_on:
+      - digital-zone-db
 volumes:
   pg_data:
