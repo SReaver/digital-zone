@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Product {
-  id           String         @id
+  id           Int            @id @default(autoincrement())
   name         String
   description  String?
   price        Float
@@ -17,15 +17,13 @@ model Product {
   providerId   String
   lastUpdated  DateTime
   priceHistory PriceHistory[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
 
   @@index([providerId])
 }
 
 model PriceHistory {
   id        Int      @id @default(autoincrement())
-  productId String
+  productId Int
   price     Float
   currency  String
   timestamp DateTime @default(now())

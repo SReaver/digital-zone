@@ -1,23 +1,19 @@
 -- CreateTable
 CREATE TABLE "Product" (
-    "id" TEXT NOT NULL,
+    "id" SERIAL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "price" DOUBLE PRECISION NOT NULL,
     "currency" TEXT NOT NULL,
     "availability" BOOLEAN NOT NULL,
     "providerId" TEXT NOT NULL,
-    "lastUpdated" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+    "lastUpdated" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
 CREATE TABLE "PriceHistory" (
     "id" SERIAL NOT NULL,
-    "productId" TEXT NOT NULL,
+    "productId" INT NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
     "currency" TEXT NOT NULL,
     "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
