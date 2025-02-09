@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { ProviderTwoModule } from './provider-two.module';
 import { runMigrations } from './database/migration.helper';
+import { ProductsModule } from './products/products.module';
 
 async function bootstrap() {
   await runMigrations();
-  const app = await NestFactory.create(ProviderTwoModule);
+  const app = await NestFactory.create(ProductsModule);
   await app.listen(3002);
 }
 bootstrap();
