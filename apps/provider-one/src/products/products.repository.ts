@@ -16,4 +16,14 @@ export class ProductRepository {
             data: product,
         });
     }
+
+    async updateManyProducts(products: { id: number, data: Partial<GeneralProduct> }[]) {
+        const updatePromises = products.map(product =>
+            this.prisma.product.update({
+                where: { id: product.id },
+                data: product.data,
+            })
+        );
+        return await Promise.all(updatePromises);
+    }
 }

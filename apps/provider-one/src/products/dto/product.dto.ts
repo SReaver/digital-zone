@@ -7,7 +7,7 @@ export class ProductDto implements GeneralProduct {
     @ApiProperty({ type: String, example: 'Product name', description: 'Name of the product' })
     name: string;
     @ApiPropertyOptional({ type: String, example: 'Product description', description: 'Description of the product' })
-    description?: string | undefined;
+    description?: string | undefined | null;
     @ApiProperty({ type: Number, example: 9.99, description: 'Price of the product' })
     price: number;
     @ApiProperty({ type: String, example: 'USD', description: 'Currency of the price' })
