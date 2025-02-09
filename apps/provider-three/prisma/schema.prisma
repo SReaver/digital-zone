@@ -13,9 +13,8 @@ model Product {
   description  String?
   price        Float
   currency     String
-  availability Boolean
   lastUpdated  DateTime
-  category     String         // New field
-  stock        Int            // New field
-  rating       Float?         // New field
+  category     String
+  stock        Int
+  rating       Float?
 }

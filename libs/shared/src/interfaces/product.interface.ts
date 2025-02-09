@@ -8,8 +8,8 @@ export interface GeneralProduct {
     lastUpdated: Date;
 }
 
-export interface ExtendedProduct extends GeneralProduct {
+export interface ExtendedProduct extends Omit<GeneralProduct, 'availability'> {
     category: string;
     stock: number;
-    rating?: number;
+    rating?: number | null;
 }

@@ -12,8 +12,6 @@ export class ProductDto implements ExtendedProduct {
     price: number;
     @ApiProperty({ type: String, example: 'USD', description: 'Currency of the price' })
     currency: string;
-    @ApiProperty({ type: Boolean, example: true, description: 'Availability of the product' })
-    availability: boolean;
     @ApiProperty({ type: Date, example: new Date(), description: 'Date of the last update' })
     lastUpdated: Date;
     @ApiProperty({ type: String, example: 'Category', description: 'Category of the product' })
@@ -21,5 +19,5 @@ export class ProductDto implements ExtendedProduct {
     @ApiProperty({ type: Number, example: 10, description: 'Stock of the product' })
     stock: number;
     @ApiPropertyOptional({ type: Number, example: 5, description: 'Rating of the product' })
-    rating?: number | undefined;
+    rating?: number | null;
 }

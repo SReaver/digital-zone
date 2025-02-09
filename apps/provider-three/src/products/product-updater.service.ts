@@ -13,7 +13,7 @@ export class ProductUpdaterService {
         const updatedProducts = products.map<ProductDto>(product => ({
             ...product,
             price: this.getRandomPrice(),
-            availability: this.getRandomAvailability(),
+            stock: this.getRandomStockAvailability(),
         })
         );
         await this.productsService.updateMany(updatedProducts);
@@ -23,7 +23,7 @@ export class ProductUpdaterService {
         return Math.floor(Math.random() * 10000) / 100;
     }
 
-    private getRandomAvailability(): boolean {
-        return Math.random() > 0.5;
+    private getRandomStockAvailability(): number {
+        return Math.floor(Math.random() * 26);
     }
 }

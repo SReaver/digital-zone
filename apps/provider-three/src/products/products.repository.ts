@@ -17,7 +17,7 @@ export class ProductRepository {
         });
     }
 
-    async updateManyProducts(products: { id: number, data: Partial<ExtendedProduct> }[]): Promise<ExtendedProduct[]> {
+    async updateManyProducts(products: { id: number, data: Omit<ExtendedProduct, 'id'> }[]): Promise<ExtendedProduct[]> {
         const updatePromises = products.map(product =>
             this.prisma.product.update({
                 where: { id: product.id },
