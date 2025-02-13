@@ -20,10 +20,16 @@ interface Provider {
 
 @Injectable()
 export class AppService {
+  private isTestingMode = false;
+
   constructor(
     private httpService: HttpService,
     private appRepository: AppRepository,
   ) { }
+
+  setTestingMode(enabled: boolean) {
+    this.isTestingMode = enabled;
+  }
 
   getHello(): string {
     return 'Hello World!';
@@ -48,7 +54,9 @@ export class AppService {
       this.httpService.get(provider.url).pipe(
         retry(3),
         catchError(error => {
-          console.error(`Error fetching data from ${provider.url}:`, error.message);
+          if (!this.isTestingMode) {
+            console.error(`Error fetching data from ${provider.url}:`, error.message);
+          }
           return throwError(error);
         }),
         map(response => {
@@ -64,7 +72,9 @@ export class AppService {
     return await lastValueFrom(forkJoin(requests))
       .then(responses => responses.flat())
       .catch(error => {
-        console.error('Error fetching data:', error.message);
+        if (!this.isTestingMode) {
+          console.error('Error fetching data:', error.message);
+        }
         return [];
       });
   }

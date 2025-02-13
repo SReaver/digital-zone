@@ -26,51 +26,90 @@
 
 Digital Zone is a real-time data aggregation service for digital products. It collects, processes, and normalizes pricing and availability data from multiple providers, offering a unified API for accessing digital product information.
 
-### Key Features
+## Architecture
 
-- Real-time data aggregation from multiple providers (e-books, software licenses, digital courses)
-- Automated price and availability monitoring
-- Data normalization and standardization
-- Price history tracking
-- RESTful API for querying aggregated data
+The project is structured as a microservices architecture using NestJS:
 
-### Architecture
+### Services
+1. **Digital Zone (Port 3000)**
+   - Main aggregation service
+   - Handles data normalization and API endpoints
+   - Connected to main products database
 
-The service consists of:
+2. **Provider Services**
+   - Provider One (Port 3001)
+   - Provider Two (Port 3002)
+   - Provider Three (Port 3003)
+   - Each simulates a third-party data source
 
-- Main aggregation service
-- Multiple provider services (simulated third-party APIs)
-- PostgreSQL database for efficient data storage
-- Docker-based deployment for easy scaling
+### Database
+- PostgreSQL instance with separate databases for each service
+- Main products database for aggregated data
+- Individual provider databases for source data
 
-### API Endpoints
+## Getting Started
 
-- `GET /products` - Query aggregated product data with filtering options
-- `GET /products/:id` - Get detailed product information including price history
-- `GET /products/changes` - Track price and availability changes over time
+1. **Prerequisites**
+   ```bash
+   - Node.js 20+
+   - Docker and Docker Compose
+   - npm
+   ```
+
+2. **Installation**
+*You can omit this step if you run docker compose*
+   ```bash
+   # Install dependencies
+   npm install
+
+   # Generate Prisma clients
+   npm run prisma:generate
+   ```
+
+3. **Running the Services**
+   ```bash
+   # Start all services using Docker Compose
+   docker-compose up
+
+   # Or start individual services
+   docker-compose up digital-zone
+   docker-compose up provider-one
+   ```
+
+4. **Environment Setup**
+   Each service uses the following environment variables:
+   ```
+   POSTGRES_HOST=digital-zone-db
+   POSTGRES_PORT=5432
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=postgres
+   POSTGRES_DB=[service-specific-db]
+   ```
+
+## API Documentation
+
+### Main Endpoints
+
+```
+GET /products
+  Query Parameters:
+  - provider: Filter by provider
+  - minPrice: Minimum price
+  - maxPrice: Maximum price
+  - available: Filter by availability
+
+GET /products/:id
+  Returns detailed product information
+
+GET /products/changes
+  Query Parameters:
+  - since: ISO date string
+  - provider: Filter by provider
+```
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## Project setup
-
-```bash
-$ npm install
-```
-
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
 
 ## Run tests
 
@@ -84,43 +123,3 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
