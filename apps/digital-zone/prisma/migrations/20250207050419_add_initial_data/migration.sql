@@ -1,4 +1,3 @@
--- CreateTable
 CREATE TABLE "Product" (
     "id" SERIAL PRIMARY KEY,
     "name" TEXT NOT NULL,
@@ -8,16 +7,15 @@ CREATE TABLE "Product" (
     "availability" BOOLEAN NOT NULL,
     "provider" TEXT NOT NULL,
     "lastUpdated" TIMESTAMP(3) NOT NULL,
-    "productId" INT NOT NULL
+    "productId" INT NOT NULL,
+    "isStale" BOOLEAN NOT NULL DEFAULT false
 );
+CREATE INDEX "Product_isStale_idx" ON "Product"("isStale");
 
--- Add unique constraint first
 ALTER TABLE "Product" ADD CONSTRAINT "productId_provider" UNIQUE ("productId", "provider");
 
--- Create indexes for Product
 CREATE INDEX "Product_provider_idx" ON "Product"("provider");
 
--- Now create PriceHistory with the foreign key
 CREATE TABLE "PriceHistory" (
     "id" SERIAL PRIMARY KEY,
     "productId" INT NOT NULL,
@@ -31,6 +29,5 @@ CREATE TABLE "PriceHistory" (
         REFERENCES "Product"("productId", "provider") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- Create indexes for PriceHistory
 CREATE INDEX "PriceHistory_productId_idx" ON "PriceHistory"("productId");
 CREATE INDEX "PriceHistory_provider_idx" ON "PriceHistory"("provider");

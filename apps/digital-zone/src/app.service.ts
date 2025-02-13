@@ -11,6 +11,8 @@ import { AppRepository } from './app.repository';
 import { createProduct } from './factories/product.factory';
 import { isExtendedProduct } from '@app/shared';
 
+const STALE_THRESHOLD_MS = 60 * 60 * 1000; // 1 hour
+
 interface Provider {
   name: ProvidersEnum;
   url: string;
@@ -59,7 +61,12 @@ export class AppService {
         }))
     );
 
-    return await lastValueFrom(forkJoin(requests)).then(responses => responses.flat());
+    return await lastValueFrom(forkJoin(requests))
+      .then(responses => responses.flat())
+      .catch(error => {
+        console.error('Error fetching data:', error.message);
+        return [];
+      });
   }
 
   async getDataFromProviders() {
@@ -95,10 +102,18 @@ export class AppService {
           newAvailability: availability,
           timestamp: new Date()
         });
-        await this.appRepository.upsertProduct({ ...product, productId: product.id });
+        await this.appRepository.upsertProduct({
+          ...product,
+          productId: product.id,
+          lastUpdated: new Date()
+        });
       }
     } else {
-      await this.appRepository.upsertProduct({ ...product, productId: product.id });
+      await this.appRepository.upsertProduct({
+        ...product,
+        productId: product.id,
+        lastUpdated: new Date()
+      });
     }
   }
 
@@ -125,5 +140,16 @@ export class AppService {
 
   async getProductsChanges(startDate: Date, endDate: Date) {
     return this.appRepository.findProductsWithChanges(startDate, endDate);
+  }
+
+  async getStaleProducts() {
+    const staleThreshold = new Date(Date.now() - STALE_THRESHOLD_MS);
+    return this.appRepository.findStaleProducts(staleThreshold);
+  }
+
+  @Interval('checkStaleProducts', 3600000) // Check every hour
+  async handleStaleProducts() {
+    const staleThreshold = new Date(Date.now() - STALE_THRESHOLD_MS);
+    await this.appRepository.markStaleProducts(staleThreshold);
   }
 }

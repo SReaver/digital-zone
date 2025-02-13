@@ -17,9 +17,11 @@ model Product {
   provider     String
   lastUpdated  DateTime
   productId    Int
+  isStale      Boolean   @default(false)
 
   @@index([provider])
   @@unique([productId, provider], name: "productId_provider")
+  @@index([isStale])
 }
 
 model PriceHistory {

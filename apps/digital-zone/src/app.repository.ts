@@ -61,6 +61,7 @@ export class AppRepository {
 				...(filters.maxPrice && { price: { lte: filters.maxPrice } }),
 				...(filters.availability !== undefined && { availability: filters.availability }),
 				...(filters.provider && { provider: filters.provider }),
+				...(filters.isStale !== undefined && { isStale: filters.isStale }),
 			},
 		});
 	}
@@ -108,5 +109,33 @@ export class AppRepository {
 
 		// Filter out products with no price history in the date range
 		return productsWithHistory.filter(product => product.priceHistory.length > 0);
+	}
+
+	async markProductAsStale(productId: number) {
+		return this.prisma.product.updateMany({
+			where: { productId },
+			data: { isStale: true }
+		});
+	}
+
+	async findStaleProducts(staleThreshold: Date) {
+		return this.prisma.product.findMany({
+			where: {
+				OR: [
+					{ lastUpdated: { lt: staleThreshold } },
+					{ isStale: true }
+				]
+			}
+		});
+	}
+
+	async markStaleProducts(staleThreshold: Date) {
+		return this.prisma.product.updateMany({
+			where: {
+				lastUpdated: { lt: staleThreshold },
+				isStale: false
+			},
+			data: { isStale: true }
+		});
 	}
 }

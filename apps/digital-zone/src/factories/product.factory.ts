@@ -1,6 +1,6 @@
 import { InternalServerErrorException } from '@nestjs/common';
 
-import { IExtendedProduct, IGeneralProduct, isExtendedProduct, isGeneralProduct } from '@app/shared';
+import { isExtendedProduct, isGeneralProduct } from '@app/shared';
 import { IPersistedExtendedProduct, IPersistedProduct, IProductClass } from './product-class.interface';
 import { ProvidersEnum } from '@app/shared/interfaces/providers.enum';
 
@@ -12,7 +12,7 @@ export class PersistedProductClass implements IPersistedProduct, IProductClass {
 	currency: string;
 	availability: boolean;
 	lastUpdated: Date;
-	provider: ProvidersEnum
+	provider: ProvidersEnum;
 
 	constructor(
 		id: number,
@@ -22,7 +22,7 @@ export class PersistedProductClass implements IPersistedProduct, IProductClass {
 		currency: string,
 		availability: boolean,
 		lastUpdated: Date,
-		provider: ProvidersEnum
+		provider: ProvidersEnum,
 	) {
 		this.id = id;
 		this.name = name;
@@ -43,7 +43,7 @@ export class PersistedProductClass implements IPersistedProduct, IProductClass {
 			currency: this.currency,
 			availability: this.availability,
 			lastUpdated: this.lastUpdated,
-			provider: this.provider
+			provider: this.provider,
 		};
 	}
 }
@@ -93,7 +93,7 @@ export class PersistedExtendedProductClass implements IPersistedExtendedProduct,
 			currency: this.currency,
 			lastUpdated: this.lastUpdated,
 			availability: this.stock > 0,
-			provider: this.provider
+			provider: this.provider,
 		};
 	}
 }
