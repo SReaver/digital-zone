@@ -1,7 +1,7 @@
-import { GeneralProduct } from "@app/shared";
+import { IGeneralProduct } from "@app/shared";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
-export class ProductDto implements GeneralProduct {
+export class ProductDto implements IGeneralProduct {
     @ApiProperty({ type: Number, example: 1, description: 'Unique identifier of the product' })
     id: number;
     @ApiProperty({ type: String, example: 'Product name', description: 'Name of the product' })

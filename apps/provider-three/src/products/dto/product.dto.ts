@@ -1,7 +1,7 @@
-import { ExtendedProduct } from "@app/shared";
+import { IExtendedProduct } from "@app/shared";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
-export class ProductDto implements ExtendedProduct {
+export class ProductDto implements IExtendedProduct {
     @ApiProperty({ type: Number, example: 1, description: 'Unique identifier of the product' })
     id: number;
     @ApiProperty({ type: String, example: 'Product name', description: 'Name of the product' })

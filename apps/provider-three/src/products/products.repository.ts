@@ -1,4 +1,4 @@
-import { ExtendedProduct } from "@app/shared";
+import { IExtendedProduct } from "@app/shared";
 import { PrismaService } from "../database/prisma.service";
 import { Injectable } from '@nestjs/common';
 
@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 export class ProductRepository {
     constructor(private readonly prisma: PrismaService) { }
 
-    async getProducts(): Promise<ExtendedProduct[]> {
+    async getProducts(): Promise<IExtendedProduct[]> {
         return await this.prisma.product.findMany();
     }
 
@@ -17,7 +17,7 @@ export class ProductRepository {
         });
     }
 
-    async updateManyProducts(products: { id: number, data: Omit<ExtendedProduct, 'id'> }[]): Promise<ExtendedProduct[]> {
+    async updateManyProducts(products: { id: number, data: Omit<IExtendedProduct, 'id'> }[]): Promise<IExtendedProduct[]> {
         const updatePromises = products.map(product =>
             this.prisma.product.update({
                 where: { id: product.id },

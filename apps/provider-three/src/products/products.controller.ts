@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { ProductDto } from './dto/product.dto';
-import { ExtendedProduct } from '@app/shared';
+import { IExtendedProduct } from '@app/shared';
 
 @ApiTags('products')
 @Controller('products')
@@ -12,7 +12,7 @@ export class ProductsController {
   @Get()
   @ApiResponse({ status: 200, description: 'Get all products', type: [ProductDto] })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  findAll(): Promise<ExtendedProduct[]> {
+  findAll(): Promise<IExtendedProduct[]> {
     return this.productsService.findAll();
   }
 }

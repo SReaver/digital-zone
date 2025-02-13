@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ProductRepository } from './products.repository';
-import { GeneralProduct } from '@app/shared';
+import { IGeneralProduct } from '@app/shared';
 import { ProductDto } from './dto/product.dto';
 
 @Injectable()
 export class ProductsService {
   constructor(private readonly productRepository: ProductRepository) { }
 
-  findAll(): Promise<GeneralProduct[]> {
+  findAll(): Promise<IGeneralProduct[]> {
     return this.productRepository.getProducts();
   }
 
