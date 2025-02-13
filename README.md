@@ -22,6 +22,33 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+## Project Overview
+
+Digital Zone is a real-time data aggregation service for digital products. It collects, processes, and normalizes pricing and availability data from multiple providers, offering a unified API for accessing digital product information.
+
+### Key Features
+
+- Real-time data aggregation from multiple providers (e-books, software licenses, digital courses)
+- Automated price and availability monitoring
+- Data normalization and standardization
+- Price history tracking
+- RESTful API for querying aggregated data
+
+### Architecture
+
+The service consists of:
+
+- Main aggregation service
+- Multiple provider services (simulated third-party APIs)
+- PostgreSQL database for efficient data storage
+- Docker-based deployment for easy scaling
+
+### API Endpoints
+
+- `GET /products` - Query aggregated product data with filtering options
+- `GET /products/:id` - Get detailed product information including price history
+- `GET /products/changes` - Track price and availability changes over time
+
 ## Description
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.

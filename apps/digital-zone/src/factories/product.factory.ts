@@ -1,9 +1,10 @@
 import { InternalServerErrorException } from '@nestjs/common';
 
 import { IExtendedProduct, IGeneralProduct, isExtendedProduct, isGeneralProduct } from '@app/shared';
-import { IProductClass } from './product-class.interface';
+import { IPersistedExtendedProduct, IPersistedProduct, IProductClass } from './product-class.interface';
+import { ProvidersEnum } from '@app/shared/interfaces/providers.enum';
 
-export class GeneralProductClass implements IGeneralProduct, IProductClass {
+export class PersistedProductClass implements IPersistedProduct, IProductClass {
 	id: number;
 	name: string;
 	description?: string | null;
@@ -11,6 +12,7 @@ export class GeneralProductClass implements IGeneralProduct, IProductClass {
 	currency: string;
 	availability: boolean;
 	lastUpdated: Date;
+	provider: ProvidersEnum
 
 	constructor(
 		id: number,
@@ -19,7 +21,8 @@ export class GeneralProductClass implements IGeneralProduct, IProductClass {
 		price: number,
 		currency: string,
 		availability: boolean,
-		lastUpdated: Date
+		lastUpdated: Date,
+		provider: ProvidersEnum
 	) {
 		this.id = id;
 		this.name = name;
@@ -28,9 +31,10 @@ export class GeneralProductClass implements IGeneralProduct, IProductClass {
 		this.currency = currency;
 		this.availability = availability;
 		this.lastUpdated = lastUpdated;
+		this.provider = provider;
 	}
 
-	toPersistence(): IGeneralProduct {
+	toPersistence() {
 		return {
 			id: this.id,
 			name: this.name,
@@ -38,12 +42,13 @@ export class GeneralProductClass implements IGeneralProduct, IProductClass {
 			price: this.price,
 			currency: this.currency,
 			availability: this.availability,
-			lastUpdated: this.lastUpdated
+			lastUpdated: this.lastUpdated,
+			provider: this.provider
 		};
 	}
 }
 
-export class ExtendedProductClass implements IExtendedProduct, IProductClass {
+export class PersistedExtendedProductClass implements IPersistedExtendedProduct, IProductClass {
 	id: number;
 	name: string;
 	description?: string | null;
@@ -53,6 +58,7 @@ export class ExtendedProductClass implements IExtendedProduct, IProductClass {
 	category: string;
 	stock: number;
 	rating?: number | null;
+	provider: ProvidersEnum
 
 	constructor(
 		id: number,
@@ -63,7 +69,8 @@ export class ExtendedProductClass implements IExtendedProduct, IProductClass {
 		lastUpdated: Date,
 		category: string,
 		stock: number,
-		rating: number | null
+		rating: number | null,
+		provider: ProvidersEnum
 	) {
 		this.id = id;
 		this.name = name;
@@ -74,9 +81,10 @@ export class ExtendedProductClass implements IExtendedProduct, IProductClass {
 		this.category = category;
 		this.stock = stock;
 		this.rating = rating;
+		this.provider = provider;
 	}
 
-	toPersistence(): IGeneralProduct {
+	toPersistence() {
 		return {
 			id: this.id,
 			name: this.name,
@@ -85,25 +93,27 @@ export class ExtendedProductClass implements IExtendedProduct, IProductClass {
 			currency: this.currency,
 			lastUpdated: this.lastUpdated,
 			availability: this.stock > 0,
+			provider: this.provider
 		};
 	}
 }
 
-export function createProduct(data: IGeneralProduct | IExtendedProduct): GeneralProductClass | ExtendedProductClass {
+export function createProduct(data: IPersistedProduct | IPersistedExtendedProduct): PersistedProductClass | PersistedExtendedProductClass {
 	switch (true) {
 		case isGeneralProduct(data):
-			return new GeneralProductClass(
+			return new PersistedProductClass(
 				data.id,
 				data.name,
 				data.description ?? null,
 				data.price,
 				data.currency,
 				data.availability,
-				data.lastUpdated
+				data.lastUpdated,
+				data.provider
 			);
 
 		case isExtendedProduct(data):
-			return new ExtendedProductClass(
+			return new PersistedExtendedProductClass(
 				data.id,
 				data.name,
 				data.description ?? null,
@@ -112,7 +122,8 @@ export function createProduct(data: IGeneralProduct | IExtendedProduct): General
 				data.lastUpdated,
 				data.category,
 				data.stock,
-				data.rating ?? null
+				data.rating ?? null,
+				data.provider
 			);
 
 		default:

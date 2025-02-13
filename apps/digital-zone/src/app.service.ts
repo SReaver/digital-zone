@@ -1,38 +1,129 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { catchError, retry } from 'rxjs/operators';
+import { Interval } from '@nestjs/schedule';
+import { catchError, retry, map } from 'rxjs/operators';
 import { forkJoin, throwError, lastValueFrom } from 'rxjs';
 
 import { isValidUrl } from './utils';
+import { ProvidersEnum } from '@app/shared/interfaces/providers.enum';
+import { IPersistedExtendedProduct, IPersistedProduct } from './factories/product-class.interface';
+import { AppRepository } from './app.repository';
+import { createProduct } from './factories/product.factory';
+import { isExtendedProduct } from '@app/shared';
+
+interface Provider {
+  name: ProvidersEnum;
+  url: string;
+}
 
 @Injectable()
 export class AppService {
-  constructor(private httpService: HttpService) { }
+  constructor(
+    private httpService: HttpService,
+    private appRepository: AppRepository,
+  ) { }
 
   getHello(): string {
     return 'Hello World!';
   }
 
-  async fetchDataFromUrls(urls: string[]): Promise<any[]> {
-    if (!urls || !urls.length) throw new BadRequestException('No URLs provided');
+  @Interval('fetchData', 5000)
+  async handleInterval() {
+    await this.getDataFromProviders();
+  }
+
+  async fetchData(providers: Provider[]): Promise<(IPersistedProduct | IPersistedExtendedProduct)[]> {
+    if (!providers || !providers.length) throw new BadRequestException('No providers provided');
 
     // validate urls
-    urls.forEach(u => {
-      if (!isValidUrl(u)) {
-        throw new BadRequestException(`Invalid URL: ${u}`);
+    providers.forEach(provider => {
+      if (!isValidUrl(provider.url)) {
+        throw new BadRequestException(`Invalid URL: ${provider.url}`);
       }
     });
 
-    const requests = urls.map(u =>
-      this.httpService.get(u).pipe(
+    const requests = providers.map(provider =>
+      this.httpService.get(provider.url).pipe(
         retry(3),
         catchError(error => {
-          console.error(`Error fetching data from ${u}:`, error.message);
+          console.error(`Error fetching data from ${provider.url}:`, error.message);
           return throwError(error);
-        })
-      )
+        }),
+        map(response => {
+          if (response) {
+            return response.data.map(product => ({
+              ...product,
+              provider: provider.name
+            }));
+          }
+        }))
     );
 
-    return await lastValueFrom(forkJoin(requests));
+    return await lastValueFrom(forkJoin(requests)).then(responses => responses.flat());
+  }
+
+  async getDataFromProviders() {
+    const providers: Provider[] = [
+      { name: ProvidersEnum.providerOne, url: 'http://provider-one:3001/products' },
+      { name: ProvidersEnum.providerTwo, url: 'http://provider-two:3002/products' },
+      { name: ProvidersEnum.providerThree, url: 'http://provider-three:3003/products' }
+    ];
+    const data = await this.fetchData(providers);
+    const preparedData = await this.prepareDataToSave(data);
+    // save data to database
+    const upsertPromises = preparedData.map(product => this.compareAndUpdateProduct(product));
+    await Promise.all(upsertPromises);
+  }
+
+  async compareAndUpdateProduct(product: IPersistedProduct | IPersistedExtendedProduct) {
+    let availability: boolean = false;
+    if (isExtendedProduct(product)) {
+      availability = Boolean(product.stock);
+    } else {
+      availability = product.availability;
+    }
+
+    const existingProduct = await this.appRepository.findProductByIdAndProvider(product.id, product.provider);
+    if (existingProduct) {
+      if (existingProduct.price !== product.price || existingProduct.availability !== availability) {
+        await this.appRepository.addPriceHistory({
+          productId: product.id,
+          provider: product.provider,
+          oldPrice: existingProduct.price,
+          newPrice: product.price,
+          oldAvailability: existingProduct.availability,
+          newAvailability: availability,
+          timestamp: new Date()
+        });
+        await this.appRepository.upsertProduct({ ...product, productId: product.id });
+      }
+    } else {
+      await this.appRepository.upsertProduct({ ...product, productId: product.id });
+    }
+  }
+
+  private prepareDataToSave(data: (IPersistedProduct | IPersistedExtendedProduct)[]): (IPersistedProduct | IPersistedExtendedProduct)[] {
+    const result: (IPersistedProduct | IPersistedExtendedProduct)[] = [];
+    for (const product of data) {
+      const productClass = createProduct(product);
+      const cls = productClass.toPersistence();
+      result.push(cls);
+    }
+    return result;
+  }
+
+  async getProducts(filters: any) {
+    return this.appRepository.findProducts(filters);
+  }
+
+  async getProductById(id: number) {
+    const product = await this.appRepository.findProductById(id);
+    if (!product) throw new BadRequestException('Product not found');
+    const priceHistory = await this.appRepository.findPriceHistoryByProductId(id);
+    return { ...product, priceHistory };
+  }
+
+  async getProductsChanges(startDate: Date, endDate: Date) {
+    return this.appRepository.findProductsWithChanges(startDate, endDate);
   }
 }

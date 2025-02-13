@@ -14,20 +14,24 @@ model Product {
   price        Float
   currency     String
   availability Boolean
-  providerId   String
+  provider     String
   lastUpdated  DateTime
-  priceHistory PriceHistory[]
+  productId    Int
 
-  @@index([providerId])
+  @@index([provider])
+  @@unique([productId, provider], name: "productId_provider")
 }
 
 model PriceHistory {
-  id        Int      @id @default(autoincrement())
-  productId Int
-  price     Float
-  currency  String
-  timestamp DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id])
+  id              Int      @id @default(autoincrement())
+  productId       Int
+  oldPrice        Float
+  newPrice        Float
+  oldAvailability Boolean
+  newAvailability Boolean
+  timestamp       DateTime @default(now())
+  provider        String
 
   @@index([productId])
+  @@index([provider])
 }

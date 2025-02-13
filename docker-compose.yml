@@ -5,7 +5,12 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=digital-zone
-    command: [ "sh", "-c", "npx prisma generate --schema=./apps/digital-zone/prisma/schema.prisma && npm run start:dev -- digital-zone" ]
+    command:
+      [
+        'sh',
+        '-c',
+        'npx prisma generate --schema=./apps/digital-zone/prisma/schema.prisma && npm run start:dev -- digital-zone',
+      ]
     ports:
       - 3000:3000
     environment:
@@ -19,9 +24,6 @@ services:
       - ./libs:/usr/src/app/libs
       - ./package.json:/usr/src/app/package.json
       - ./tsconfig.json:/usr/src/app/tsconfig.json
-      # Note: This is usually not a good practice to mount the "node_modules" directory on the host to the container       # We are doing this for the sake of simplicity in this example       - ./node_modules:/usr/src/app/node_modules
-      # This instructs Docker Compose to mount the "digital-zone" directory on the host to the "/usr/src/app" directory on the container
-      # This allows us to make changes to the code on the host and have them reflected in the container without having to rebuild the image
       - ./apps/digital-zone:/usr/src/app/apps/digital-zone
   digital-zone-db:
     image: postgres:13
@@ -41,7 +43,12 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=provider-one
-    command: [ "sh", "-c", "npx prisma generate --schema=./apps/provider-one/prisma/schema.prisma && npm run start:dev -- provider-one" ]
+    command:
+      [
+        'sh',
+        '-c',
+        'npx prisma generate --schema=./apps/provider-one/prisma/schema.prisma && npm run start:dev -- provider-one',
+      ]
     ports:
       - 3001:3001
     environment:
@@ -65,7 +72,12 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=provider-two
-    command: [ "sh", "-c", "npx prisma generate --schema=./apps/provider-two/prisma/schema.prisma && npm run start:dev -- provider-two" ]
+    command:
+      [
+        'sh',
+        '-c',
+        'npx prisma generate --schema=./apps/provider-two/prisma/schema.prisma && npm run start:dev -- provider-two',
+      ]
     ports:
       - 3002:3002
     environment:
@@ -88,7 +100,12 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=provider-three
-    command: [ "sh", "-c", "npx prisma generate --schema=./apps/provider-three/prisma/schema.prisma && npm run start:dev -- provider-three" ]
+    command:
+      [
+        'sh',
+        '-c',
+        'npx prisma generate --schema=./apps/provider-three/prisma/schema.prisma && npm run start:dev -- provider-three',
+      ]
     ports:
       - 3003:3003
     environment:
