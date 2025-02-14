@@ -107,18 +107,35 @@ GET /products/changes
   - provider: Filter by provider
 ```
 
-## Description
+## Security
 
+This project uses an API key for securing endpoints. The API key must be included in the request headers:
 
+```
+x-api-key: your-api-key
+```
+
+Ensure that your API key is kept secret and not exposed in client-side code or public repositories. The API key should be stored in an environment variable named `API_KEY`:
+
+```
+API_KEY=your-api-key
+```
+
+When using Docker Compose, you can set the API key in the `docker-compose.yml` file:
+
+```yaml
+services:
+  digital-zone:
+    environment:
+      - API_KEY=your-api-key
+  # ...other services...
+```
 
 ## Run tests
 
 ```bash
 # unit tests
 $ npm run test
-
-# e2e tests
-$ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
