@@ -1,10 +1,14 @@
-import { Controller, Get, Param, Query, UsePipes, ValidationPipe, ParseIntPipe } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Param, Query, UsePipes, ValidationPipe, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
 import { GetProductsQueryDto } from './dto/get-products.dto';
 import { GetProductChangesDto } from './dto/get-product-changes.dto';
+import { ApiKeyGuard } from './guards/api-key.guard';
 
+@ApiTags('Products')
 @Controller()
+@UseGuards(ApiKeyGuard)
+@ApiHeader({ name: 'x-api-key', required: true, description: 'API key for authentication' })
 export class AppController {
   constructor(private readonly appService: AppService) { }
 

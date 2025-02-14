@@ -5,12 +5,7 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=digital-zone
-    command:
-      [
-        'sh',
-        '-c',
-        'npx prisma generate --schema=./apps/digital-zone/prisma/schema.prisma && npm run start:dev -- digital-zone',
-      ]
+    command: [ 'sh', '-c', 'npx prisma generate --schema=./apps/digital-zone/prisma/schema.prisma && npm run start:dev -- digital-zone' ]
     ports:
       - 3000:3000
     environment:
@@ -20,6 +15,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=products
       - DATABASE_URL=postgresql://postgres:postgres@digital-zone-db:5432/products
+      - API_KEY=api-secret-key
     volumes:
       - ./libs:/usr/src/app/libs
       - ./package.json:/usr/src/app/package.json
@@ -43,12 +39,7 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=provider-one
-    command:
-      [
-        'sh',
-        '-c',
-        'npx prisma generate --schema=./apps/provider-one/prisma/schema.prisma && npm run start:dev -- provider-one',
-      ]
+    command: [ 'sh', '-c', 'npx prisma generate --schema=./apps/provider-one/prisma/schema.prisma && npm run start:dev -- provider-one' ]
     ports:
       - 3001:3001
     environment:
@@ -72,12 +63,7 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=provider-two
-    command:
-      [
-        'sh',
-        '-c',
-        'npx prisma generate --schema=./apps/provider-two/prisma/schema.prisma && npm run start:dev -- provider-two',
-      ]
+    command: [ 'sh', '-c', 'npx prisma generate --schema=./apps/provider-two/prisma/schema.prisma && npm run start:dev -- provider-two' ]
     ports:
       - 3002:3002
     environment:
@@ -100,12 +86,7 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=provider-three
-    command:
-      [
-        'sh',
-        '-c',
-        'npx prisma generate --schema=./apps/provider-three/prisma/schema.prisma && npm run start:dev -- provider-three',
-      ]
+    command: [ 'sh', '-c', 'npx prisma generate --schema=./apps/provider-three/prisma/schema.prisma && npm run start:dev -- provider-three' ]
     ports:
       - 3003:3003
     environment:

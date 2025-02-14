@@ -5,9 +5,10 @@ import { HttpModule } from '@nestjs/axios';
 import { AppRepository } from './app.repository';
 import { PrismaService } from './database/prisma.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), HttpModule],
+  imports: [ConfigModule.forRoot(), ScheduleModule.forRoot(), HttpModule],
   controllers: [AppController],
   providers: [AppService, PrismaService, AppRepository],
 })
