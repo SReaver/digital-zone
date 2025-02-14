@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Interval } from '@nestjs/schedule';
+import { ConfigService } from '@nestjs/config';
 import { catchError, retry, map } from 'rxjs/operators';
 import { forkJoin, throwError, lastValueFrom } from 'rxjs';
 
@@ -19,13 +20,27 @@ interface Provider {
 }
 
 @Injectable()
-export class AppService {
+export class AppService implements OnModuleInit, OnModuleDestroy {
   private isTestingMode = false;
+  private intervalId: NodeJS.Timeout;
 
   constructor(
     private httpService: HttpService,
     private appRepository: AppRepository,
+    private configService: ConfigService,
   ) { }
+
+  onModuleInit() {
+    const interval = this.configService.get<number>('DATA_FETCH_INTERVAL', 5000);
+
+    this.intervalId = setInterval(() => {
+      this.getDataFromProviders();
+    }, interval);
+  }
+
+  onModuleDestroy() {
+    clearInterval(this.intervalId);
+  }
 
   setTestingMode(enabled: boolean) {
     this.isTestingMode = enabled;
@@ -33,11 +48,6 @@ export class AppService {
 
   getHello(): string {
     return 'Hello World!';
-  }
-
-  @Interval('fetchData', 5000)
-  async handleInterval() {
-    await this.getDataFromProviders();
   }
 
   async fetchData(providers: Provider[]): Promise<(IPersistedProduct | IPersistedExtendedProduct)[]> {
