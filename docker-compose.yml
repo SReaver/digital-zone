@@ -28,6 +28,9 @@ services:
       - ./tsconfig.json:/usr/src/app/tsconfig.json
       - ./apps/digital-zone:/usr/src/app/apps/digital-zone
       - ./apps/digital-zone/client:/usr/src/app/client
+    depends_on:
+      - digital-zone-db
+
   digital-zone-db:
     image: postgres:13
     environment:
@@ -97,6 +100,7 @@ services:
       - ./apps/provider-two:/usr/src/app/apps/provider-two
     depends_on:
       - digital-zone-db
+      
   provider-three:
     build:
       context: .
