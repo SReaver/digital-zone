@@ -13,11 +13,14 @@ COPY package*.json ./
 # Install app dependencies
 RUN npm install
 
-# Bundle app source
+# Bundle remaining app source
 COPY . .
 
+# Copy client directory for digital-zone app
+COPY ./apps/digital-zone/client/ ./dist/apps/digital-zone/client/
+
 # Creates a "dist" folder with the production build
-RUN npm run build -- ${APP_NAME}
+RUN npm run build -- ${APP_NAME} && npm run build:client
 
 # Start the server using the production build
 CMD [ "node", "dist/apps/${APP_NAME}/main.js" ]

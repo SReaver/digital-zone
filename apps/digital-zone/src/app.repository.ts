@@ -9,7 +9,11 @@ export class AppRepository {
 	constructor(private prisma: PrismaService) { }
 
 	async findAllProducts(): Promise<IPersistedProduct[]> {
-		return await this.prisma.product.findMany();
+		const products = await this.prisma.product.findMany();
+		return products.map(product => ({
+			...product,
+			provider: product.provider as ProvidersEnum
+		}));
 	}
 
 	async findProductById(productId: number) {
@@ -30,21 +34,31 @@ export class AppRepository {
 
 	async upsertProduct(data: any): Promise<IPersistedProduct> {
 		const { id, ...restData } = data;
-		return this.prisma.product.upsert({
+		const product = await this.prisma.product.upsert({
 			where: {
 				productId_provider: { productId: id, provider: data.provider }
 			},
 			update: restData,
 			create: { ...restData, productId: id }
 		});
+
+		return {
+			...product,
+			provider: product.provider as ProvidersEnum
+		};
 	}
 
 	async findProductByIdAndProvider(productId: number, provider: ProvidersEnum): Promise<IPersistedProduct | null> {
-		return await this.prisma.product.findUnique({
+		const product = await this.prisma.product.findUnique({
 			where: {
 				productId_provider: { productId, provider },
 			},
 		});
+
+		return product ? {
+			...product,
+			provider: product.provider as ProvidersEnum
+		} : null;
 	}
 
 	async addPriceHistory(data: IAddPriceHistory) {
@@ -54,7 +68,7 @@ export class AppRepository {
 	}
 
 	async findProducts(filters: any) {
-		return this.prisma.product.findMany({
+		const products = await this.prisma.product.findMany({
 			where: {
 				...(filters.name && { name: { contains: filters.name } }),
 				...(filters.minPrice && { price: { gte: filters.minPrice } }),
@@ -64,6 +78,11 @@ export class AppRepository {
 				...(filters.isStale !== undefined && { isStale: filters.isStale }),
 			},
 		});
+
+		return products.map(product => ({
+			...product,
+			provider: product.provider as ProvidersEnum
+		}));
 	}
 
 	async findPriceHistoryByProductId(id: number) {

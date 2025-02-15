@@ -131,6 +131,14 @@ services:
   # ...other services...
 ```
 
+## Client Application
+
+The client application is a simple static site served by the Digital Zone API service. It provides a basic interface to interact with the API.
+
+### Running the Client
+
+The client application is automatically served when you run the Digital Zone API service. You can access it at `http://localhost:3000`.
+
 ## Run tests
 
 ```bash

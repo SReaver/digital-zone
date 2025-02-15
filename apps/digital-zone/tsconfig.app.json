@@ -4,6 +4,6 @@
     "declaration": false,
     "outDir": "../../dist/apps/digital-zone"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "client/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
 }

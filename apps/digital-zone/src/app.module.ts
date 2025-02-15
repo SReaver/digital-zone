@@ -7,9 +7,20 @@ import { PrismaService } from './database/prisma.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import { ProductUpdatesService } from './events/product-updates.service';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
-  imports: [ConfigModule.forRoot(), ScheduleModule.forRoot(), HttpModule],
+  imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '../../..', 'client'),
+      renderPath: '/',
+      exclude: ['/products'],
+    }),
+    ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
+    HttpModule,
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService, AppRepository, ProductUpdatesService],
 })

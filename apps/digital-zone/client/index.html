@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Digital Zone</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      const eventSource = new EventSource('/products/events');
+      eventSource.addEventListener('message', function (event) {
+        try {
+          const products = JSON.parse(event.data);
+          updateProductTable(products);
+        } catch (error) {
+          console.error('JSON error:', error, 'Raw data:', event.data);
+        }
+      });
+
+      function updateProductTable(products) {
+        const tbody = document.querySelector('#product-table tbody');
+        tbody.innerHTML = ''; // Clear existing rows
+
+        products.forEach((product) => {
+          const row = document.createElement('tr');
+          row.id = `product-${product.id}`;
+          row.innerHTML = `
+            <td>${product.id}</td>
+            <td>${product.name}</td>
+            <td>${product.description}</td>
+            <td>${product.price}</td>
+            <td>${product.currency}</td>
+            <td>${product.availability}</td>
+            <td>${product.lastUpdated}</td>
+            <td>${product.provider}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Digital Zone API</h1>
+    <p>Welcome to the Digital Zone API service.</p>
+    <table id="product-table" border="1">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Price</th>
+          <th>Currency</th>
+          <th>Availability</th>
+          <th>Last Updated</th>
+          <th>Provider</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Product rows will be appended here -->
+      </tbody>
+    </table>
+  </body>
+</html>

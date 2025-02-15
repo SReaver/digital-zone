@@ -27,8 +27,9 @@ services:
       - ./package.json:/usr/src/app/package.json
       - ./tsconfig.json:/usr/src/app/tsconfig.json
       - ./apps/digital-zone:/usr/src/app/apps/digital-zone
+      - ./apps/digital-zone/client:/usr/src/app/client
   digital-zone-db:
-    image: postgres:13
+    image: postgres:latest
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
