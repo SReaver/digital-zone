@@ -11,6 +11,7 @@ import { IPersistedExtendedProduct, IPersistedProduct } from './factories/produc
 import { AppRepository } from './app.repository';
 import { createProduct } from './factories/product.factory';
 import { isExtendedProduct } from '@app/shared';
+import { ProductUpdatesService } from './events/product-updates.service';
 
 const STALE_THRESHOLD_MS = 60 * 60 * 1000; // 1 hour
 
@@ -28,6 +29,7 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
     private httpService: HttpService,
     private appRepository: AppRepository,
     private configService: ConfigService,
+    private productUpdatesService: ProductUpdatesService,
   ) { }
 
   onModuleInit() {
@@ -97,18 +99,28 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
     ];
     const data = await this.fetchData(providers);
     const preparedData = await this.prepareDataToSave(data);
-    // save data to database
-    const upsertPromises = preparedData.map(product => this.compareAndUpdateProduct(product));
-    await Promise.all(upsertPromises);
+    const savedProducts = await Promise.all(
+      preparedData.map(product => this.compareAndUpdateProduct(product))
+    );
+
+    if (savedProducts.length > 0) {
+      this.productUpdatesService.emitProductUpdates(savedProducts);
+    }
   }
 
-  async compareAndUpdateProduct(product: IPersistedProduct | IPersistedExtendedProduct) {
+  async compareAndUpdateProduct(product: IPersistedProduct | IPersistedExtendedProduct): Promise<IPersistedProduct> {
     let availability: boolean = false;
     if (isExtendedProduct(product)) {
       availability = Boolean(product.stock);
     } else {
       availability = product.availability;
     }
+
+    const productToUpsert = {
+      ...product,
+      productId: product.id,
+      lastUpdated: new Date(),
+    };
 
     const existingProduct = await this.appRepository.findProductByIdAndProvider(product.id, product.provider);
     if (existingProduct) {
@@ -120,21 +132,11 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
           newPrice: product.price,
           oldAvailability: existingProduct.availability,
           newAvailability: availability,
-          timestamp: new Date()
-        });
-        await this.appRepository.upsertProduct({
-          ...product,
-          productId: product.id,
-          lastUpdated: new Date()
+          timestamp: new Date(),
         });
       }
-    } else {
-      await this.appRepository.upsertProduct({
-        ...product,
-        productId: product.id,
-        lastUpdated: new Date()
-      });
     }
+    return await this.appRepository.upsertProduct(productToUpsert);
   }
 
   private prepareDataToSave(data: (IPersistedProduct | IPersistedExtendedProduct)[]): (IPersistedProduct | IPersistedExtendedProduct)[] {
@@ -148,7 +150,11 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getProducts(filters: any) {
-    return this.appRepository.findProducts(filters);
+    return await this.appRepository.findProducts(filters);
+  }
+
+  async findAllProducts(): Promise<IPersistedProduct[]> {
+    return await this.appRepository.findAllProducts();
   }
 
   async getProductById(id: number) {

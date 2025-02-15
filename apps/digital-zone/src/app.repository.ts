@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from './database/prisma.service';
 import { ProvidersEnum } from '@app/shared/interfaces/providers.enum';
-import { IGeneralProduct } from '@app/shared';
 import { IAddPriceHistory } from './dto/add-price-history.interface';
+import { IPersistedProduct } from './factories/product-class.interface';
 
 @Injectable()
 export class AppRepository {
 	constructor(private prisma: PrismaService) { }
 
-	async findAllProducts() {
-		return this.prisma.product.findMany();
+	async findAllProducts(): Promise<IPersistedProduct[]> {
+		return await this.prisma.product.findMany();
 	}
 
 	async findProductById(productId: number) {
@@ -28,7 +28,7 @@ export class AppRepository {
 		});
 	}
 
-	async upsertProduct(data: any) {
+	async upsertProduct(data: any): Promise<IPersistedProduct> {
 		const { id, ...restData } = data;
 		return this.prisma.product.upsert({
 			where: {
@@ -39,7 +39,7 @@ export class AppRepository {
 		});
 	}
 
-	async findProductByIdAndProvider(productId: number, provider: ProvidersEnum): Promise<IGeneralProduct | null> {
+	async findProductByIdAndProvider(productId: number, provider: ProvidersEnum): Promise<IPersistedProduct | null> {
 		return await this.prisma.product.findUnique({
 			where: {
 				productId_provider: { productId, provider },
