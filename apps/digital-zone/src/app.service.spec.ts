@@ -30,6 +30,18 @@ describe('AppService', () => {
 		markStaleProducts: jest.fn()
 	};
 
+	const fixedDate = new Date('2023-01-01T00:00:00Z');
+	const OriginalDate = Date;
+
+	beforeAll(() => {
+		global.Date = jest.fn(() => fixedDate) as unknown as DateConstructor;
+		global.Date.now = OriginalDate.now;
+	});
+
+	afterAll(() => {
+		global.Date = OriginalDate;
+	});
+
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
 			imports: [ConfigModule.forRoot()], // Add ConfigModule to imports
@@ -43,10 +55,21 @@ describe('AppService', () => {
 		}).compile();
 
 		service = module.get<AppService>(AppService);
-		service.setTestingMode(true);
 		httpService = module.get<HttpService>(HttpService);
 		appRepository = module.get<AppRepository>(AppRepository);
 	});
+
+	const mockProduct: IPersistedProduct = {
+		id: 1,
+		name: 'Test Product',
+		price: 100,
+		currency: 'USD',
+		availability: true,
+		provider: ProvidersEnum.providerOne,
+		lastUpdated: fixedDate,
+		productId: 1,
+		isStale: false
+	};
 
 	afterEach(() => {
 		jest.clearAllMocks();
@@ -83,24 +106,22 @@ describe('AppService', () => {
 		});
 
 		it('should handle HTTP errors gracefully', async () => {
+			const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 			mockHttpService.get.mockReturnValue(throwError(() => new Error('Network error')));
 
 			const result = await service.fetchData(mockProviders);
 
 			expect(result).toEqual([]);
+			expect(consoleErrorSpy).toHaveBeenCalledWith(
+				'Error fetching data from http://provider-one:3001/products:',
+				'Network error'
+			);
+			consoleErrorSpy.mockRestore();
 		});
 	});
 
+
 	describe('compareAndUpdateProduct', () => {
-		const mockProduct: IPersistedProduct = {
-			id: 1,
-			name: 'Test Product',
-			price: 100,
-			currency: 'USD',
-			availability: true,
-			provider: ProvidersEnum.providerOne,
-			lastUpdated: new Date()
-		};
 
 		it('should create new product if it does not exist', async () => {
 			mockAppRepository.findProductByIdAndProvider.mockResolvedValue(null);
@@ -108,11 +129,7 @@ describe('AppService', () => {
 			await service.compareAndUpdateProduct(mockProduct);
 
 			expect(mockAppRepository.upsertProduct).toHaveBeenCalledWith(
-				expect.objectContaining({
-					...mockProduct,
-					productId: mockProduct.id,
-					lastUpdated: expect.any(Date)
-				})
+				mockProduct
 			);
 		});
 
@@ -155,15 +172,88 @@ describe('AppService', () => {
 
 	describe('getStaleProducts', () => {
 		it('should find stale products using correct threshold', async () => {
-			const mockStaleProducts = [{ id: 1 }];
+			const mockStaleProducts = [mockProduct];
 			mockAppRepository.findStaleProducts.mockResolvedValue(mockStaleProducts);
 
 			const result = await service.getStaleProducts();
 
 			expect(mockAppRepository.findStaleProducts).toHaveBeenCalledWith(
-				expect.any(Date)
+				fixedDate
 			);
 			expect(result).toEqual(mockStaleProducts);
+		});
+	});
+
+	describe('onModuleInit', () => {
+		it('should set interval for data fetching', () => {
+			const setIntervalSpy = jest.spyOn(global, 'setInterval');
+			service.onModuleInit();
+			expect(setIntervalSpy).toHaveBeenCalled();
+		});
+	});
+
+	describe('onModuleDestroy', () => {
+		it('should clear interval', () => {
+			const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+			service.onModuleInit(); // Ensure the interval is set
+			service.onModuleDestroy();
+			expect(clearIntervalSpy).toHaveBeenCalled();
+		});
+	});
+
+	describe('getDataFromProviders', () => {
+		it('should fetch data from providers and emit updates', async () => {
+			const mockGeneralProduct: IPersistedProduct = {
+				id: 20,
+				name: 'Test product',
+				price: 34.99,
+				currency: 'USD',
+				availability: false,
+				lastUpdated: fixedDate,
+				provider: ProvidersEnum.providerOne,
+				productId: 20,
+				isStale: false
+			};
+			const fetchDataSpy = jest.spyOn(service, 'fetchData').mockResolvedValue([mockGeneralProduct]);
+			const compareAndUpdateProductSpy = jest.spyOn(service, 'compareAndUpdateProduct').mockResolvedValue({} as any);
+			const emitProductUpdatesSpy = jest.spyOn(service['productUpdatesService'], 'emitProductUpdates');
+
+			await service.getDataFromProviders();
+
+			expect(fetchDataSpy).toHaveBeenCalled();
+			expect(compareAndUpdateProductSpy).toHaveBeenCalled();
+			expect(emitProductUpdatesSpy).toHaveBeenCalled();
+		});
+	});
+
+	describe('getProducts', () => {
+		it('should get products with filters', async () => {
+			const mockFilters = { name: 'Product 1' };
+			await service.getProducts(mockFilters);
+			expect(mockAppRepository.findProducts).toHaveBeenCalledWith(mockFilters);
+		});
+	});
+
+	describe('findAllProducts', () => {
+		it('should find all products', async () => {
+			await service.getProducts({});
+			expect(mockAppRepository.findProducts).toHaveBeenCalledWith({});
+		});
+	});
+
+	describe('getProductsChanges', () => {
+		it('should get product changes between dates', async () => {
+			const startDate = new Date();
+			const endDate = new Date();
+			await service.getProductsChanges(startDate, endDate);
+			expect(mockAppRepository.findProductsWithChanges).toHaveBeenCalledWith(startDate, endDate);
+		});
+	});
+
+	describe('handleStaleProducts', () => {
+		it('should handle stale products', async () => {
+			await service.handleStaleProducts();
+			expect(mockAppRepository.markStaleProducts).toHaveBeenCalled();
 		});
 	});
 });

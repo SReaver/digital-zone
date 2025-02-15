@@ -10,9 +10,9 @@ export class AppRepository {
 
 	async findAllProducts(): Promise<IPersistedProduct[]> {
 		const products = await this.prisma.product.findMany();
-		return products.map(product => ({
+		return products.map((product) => ({
 			...product,
-			provider: product.provider as ProvidersEnum
+			provider: product.provider as ProvidersEnum,
 		}));
 	}
 
@@ -36,34 +36,39 @@ export class AppRepository {
 		const { id, ...restData } = data;
 		const product = await this.prisma.product.upsert({
 			where: {
-				productId_provider: { productId: id, provider: data.provider }
+				productId_provider: { productId: id, provider: data.provider },
 			},
 			update: restData,
-			create: { ...restData, productId: id }
+			create: { ...restData },
 		});
 
 		return {
 			...product,
-			provider: product.provider as ProvidersEnum
+			provider: product.provider as ProvidersEnum,
 		};
 	}
 
-	async findProductByIdAndProvider(productId: number, provider: ProvidersEnum): Promise<IPersistedProduct | null> {
+	async findProductByIdAndProvider(
+		productId: number,
+		provider: ProvidersEnum,
+	): Promise<IPersistedProduct | null> {
 		const product = await this.prisma.product.findUnique({
 			where: {
 				productId_provider: { productId, provider },
 			},
 		});
 
-		return product ? {
-			...product,
-			provider: product.provider as ProvidersEnum
-		} : null;
+		return product
+			? {
+				...product,
+				provider: product.provider as ProvidersEnum,
+			}
+			: null;
 	}
 
 	async addPriceHistory(data: IAddPriceHistory) {
 		return await this.prisma.priceHistory.create({
-			data
+			data,
 		});
 	}
 
@@ -73,15 +78,17 @@ export class AppRepository {
 				...(filters.name && { name: { contains: filters.name } }),
 				...(filters.minPrice && { price: { gte: filters.minPrice } }),
 				...(filters.maxPrice && { price: { lte: filters.maxPrice } }),
-				...(filters.availability !== undefined && { availability: filters.availability }),
+				...(filters.availability !== undefined && {
+					availability: filters.availability,
+				}),
 				...(filters.provider && { provider: filters.provider }),
 				...(filters.isStale !== undefined && { isStale: filters.isStale }),
 			},
 		});
 
-		return products.map(product => ({
+		return products.map((product) => ({
 			...product,
-			provider: product.provider as ProvidersEnum
+			provider: product.provider as ProvidersEnum,
 		}));
 	}
 
@@ -115,36 +122,35 @@ export class AppRepository {
 						},
 					},
 					orderBy: {
-						timestamp: 'desc'
-					}
+						timestamp: 'desc',
+					},
 				});
 
 				return {
 					...product,
-					priceHistory
+					priceHistory,
 				};
-			})
+			}),
 		);
 
 		// Filter out products with no price history in the date range
-		return productsWithHistory.filter(product => product.priceHistory.length > 0);
+		return productsWithHistory.filter(
+			(product) => product.priceHistory.length > 0,
+		);
 	}
 
 	async markProductAsStale(productId: number) {
 		return this.prisma.product.updateMany({
 			where: { productId },
-			data: { isStale: true }
+			data: { isStale: true },
 		});
 	}
 
 	async findStaleProducts(staleThreshold: Date) {
 		return this.prisma.product.findMany({
 			where: {
-				OR: [
-					{ lastUpdated: { lt: staleThreshold } },
-					{ isStale: true }
-				]
-			}
+				OR: [{ lastUpdated: { lt: staleThreshold } }, { isStale: true }],
+			},
 		});
 	}
 
@@ -152,9 +158,9 @@ export class AppRepository {
 		return this.prisma.product.updateMany({
 			where: {
 				lastUpdated: { lt: staleThreshold },
-				isStale: false
+				isStale: false,
 			},
-			data: { isStale: true }
+			data: { isStale: true },
 		});
 	}
 }

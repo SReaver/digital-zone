@@ -24,6 +24,7 @@
           row.id = `product-${product.id}`;
           row.innerHTML = `
             <td>${product.id}</td>
+            <td>${product.productId}</td>
             <td>${product.name}</td>
             <td>${product.description}</td>
             <td>${product.price}</td>
@@ -31,6 +32,7 @@
             <td>${product.availability}</td>
             <td>${product.lastUpdated}</td>
             <td>${product.provider}</td>
+            <td>${product.isStale}</td>
           `;
           tbody.appendChild(row);
         });
@@ -44,6 +46,7 @@
       <thead>
         <tr>
           <th>ID</th>
+          <th>Product ID</th>
           <th>Name</th>
           <th>Description</th>
           <th>Price</th>
@@ -51,6 +54,7 @@
           <th>Availability</th>
           <th>Last Updated</th>
           <th>Provider</th>
+          <th>Is Stale</th> <!-- New isStale column header -->
         </tr>
       </thead>
       <tbody>

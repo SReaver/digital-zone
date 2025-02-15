@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Interval } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
@@ -7,7 +12,11 @@ import { forkJoin, throwError, lastValueFrom } from 'rxjs';
 
 import { isValidUrl } from './utils';
 import { ProvidersEnum } from '@app/shared/interfaces/providers.enum';
-import { IPersistedExtendedProduct, IPersistedProduct } from './factories/product-class.interface';
+import {
+  IAddPersistedProduct,
+  IPersistedExtendedProduct,
+  IPersistedProduct,
+} from './factories/product-class.interface';
 import { AppRepository } from './app.repository';
 import { createProduct } from './factories/product.factory';
 import { isExtendedProduct } from '@app/shared';
@@ -22,7 +31,6 @@ interface Provider {
 
 @Injectable()
 export class AppService implements OnModuleInit, OnModuleDestroy {
-  private isTestingMode = false;
   private intervalId: NodeJS.Timeout;
 
   constructor(
@@ -33,70 +41,85 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   ) { }
 
   onModuleInit() {
-    const interval = this.configService.get<number>('DATA_FETCH_INTERVAL', 5000);
+    const interval = this.configService.get<number>(
+      'DATA_FETCH_INTERVAL',
+      5000,
+    );
 
     this.intervalId = setInterval(() => {
       this.getDataFromProviders();
     }, interval);
+    this.intervalId.unref(); // Ensure the interval does not keep the process alive
   }
 
   onModuleDestroy() {
-    clearInterval(this.intervalId);
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
   }
 
-  setTestingMode(enabled: boolean) {
-    this.isTestingMode = enabled;
-  }
-
-  async fetchData(providers: Provider[]): Promise<(IPersistedProduct | IPersistedExtendedProduct)[]> {
-    if (!providers || !providers.length) throw new BadRequestException('No providers provided');
+  async fetchData(
+    providers: Provider[],
+  ): Promise<(IPersistedProduct | IPersistedExtendedProduct)[]> {
+    if (!providers || !providers.length)
+      throw new BadRequestException('No providers provided');
 
     // validate urls
-    providers.forEach(provider => {
+    providers.forEach((provider) => {
       if (!isValidUrl(provider.url)) {
         throw new BadRequestException(`Invalid URL: ${provider.url}`);
       }
     });
 
-    const requests = providers.map(provider =>
+    const requests = providers.map((provider) =>
       this.httpService.get(provider.url).pipe(
         retry(3),
-        catchError(error => {
-          if (!this.isTestingMode) {
-            console.error(`Error fetching data from ${provider.url}:`, error.message);
-          }
+        catchError((error) => {
+            console.error(
+              `Error fetching data from ${provider.url}:`,
+              error.message,
+            );
+
           return throwError(error);
         }),
-        map(response => {
+        map((response) => {
           if (response) {
-            return response.data.map(product => ({
+            return response.data.map((product) => ({
               ...product,
-              provider: provider.name
+              provider: provider.name,
             }));
           }
-        }))
+        }),
+      ),
     );
 
     return await lastValueFrom(forkJoin(requests))
-      .then(responses => responses.flat())
-      .catch(error => {
-        if (!this.isTestingMode) {
-          console.error('Error fetching data:', error.message);
-        }
+      .then((responses) => responses.flat())
+      .catch((error) => {
+        console.error('Error fetching data:', error.message);
         return [];
       });
   }
 
   async getDataFromProviders() {
     const providers: Provider[] = [
-      { name: ProvidersEnum.providerOne, url: 'http://provider-one:3001/products' },
-      { name: ProvidersEnum.providerTwo, url: 'http://provider-two:3002/products' },
-      { name: ProvidersEnum.providerThree, url: 'http://provider-three:3003/products' }
+      {
+        name: ProvidersEnum.providerOne,
+        url: 'http://provider-one:3001/products',
+      },
+      {
+        name: ProvidersEnum.providerTwo,
+        url: 'http://provider-two:3002/products',
+      },
+      {
+        name: ProvidersEnum.providerThree,
+        url: 'http://provider-three:3003/products',
+      },
     ];
     const data = await this.fetchData(providers);
-    const preparedData = await this.prepareDataToSave(data);
+    const preparedData = this.prepareDataToSave(data);
     const savedProducts = await Promise.all(
-      preparedData.map(product => this.compareAndUpdateProduct(product))
+      preparedData.map((product) => this.compareAndUpdateProduct(product)),
     );
 
     if (savedProducts.length > 0) {
@@ -104,7 +127,9 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async compareAndUpdateProduct(product: IPersistedProduct | IPersistedExtendedProduct): Promise<IPersistedProduct> {
+  async compareAndUpdateProduct(
+    product: IAddPersistedProduct | IPersistedExtendedProduct,
+  ): Promise<IPersistedProduct> {
     let availability: boolean = false;
     if (isExtendedProduct(product)) {
       availability = Boolean(product.stock);
@@ -118,9 +143,15 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
       lastUpdated: new Date(),
     };
 
-    const existingProduct = await this.appRepository.findProductByIdAndProvider(product.id, product.provider);
+    const existingProduct = await this.appRepository.findProductByIdAndProvider(
+      product.id,
+      product.provider,
+    );
     if (existingProduct) {
-      if (existingProduct.price !== product.price || existingProduct.availability !== availability) {
+      if (
+        existingProduct.price !== product.price ||
+        existingProduct.availability !== availability
+      ) {
         await this.appRepository.addPriceHistory({
           productId: product.id,
           provider: product.provider,
@@ -135,8 +166,10 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
     return await this.appRepository.upsertProduct(productToUpsert);
   }
 
-  private prepareDataToSave(data: (IPersistedProduct | IPersistedExtendedProduct)[]): (IPersistedProduct | IPersistedExtendedProduct)[] {
-    const result: (IPersistedProduct | IPersistedExtendedProduct)[] = [];
+  private prepareDataToSave(
+    data: (IPersistedProduct | IPersistedExtendedProduct)[],
+  ): IAddPersistedProduct[] {
+    const result: IAddPersistedProduct[] = [];
     for (const product of data) {
       const productClass = createProduct(product);
       const cls = productClass.toPersistence();
@@ -156,7 +189,8 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   async getProductById(id: number) {
     const product = await this.appRepository.findProductById(id);
     if (!product) throw new BadRequestException('Product not found');
-    const priceHistory = await this.appRepository.findPriceHistoryByProductId(id);
+    const priceHistory =
+      await this.appRepository.findPriceHistoryByProductId(id);
     return { ...product, priceHistory };
   }
 

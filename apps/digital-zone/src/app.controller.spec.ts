@@ -10,6 +10,7 @@ import { ProductUpdatesService } from './events/product-updates.service';
 describe('AppController', () => {
   let appController: AppController;
   let appService: AppService;
+  let app: TestingModule;
 
   const mockAppService = {
     getProducts: jest.fn(),
@@ -17,7 +18,7 @@ describe('AppController', () => {
   };
 
   beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
+    app = await Test.createTestingModule({
       imports: [ConfigModule.forRoot()], 
       controllers: [AppController],
       providers: [
@@ -36,6 +37,10 @@ describe('AppController', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe('getProducts', () => {

@@ -1,7 +1,11 @@
 import { InternalServerErrorException } from '@nestjs/common';
 
 import { isExtendedProduct, isGeneralProduct } from '@app/shared';
-import { IPersistedExtendedProduct, IPersistedProduct, IProductClass } from './product-class.interface';
+import {
+	IPersistedExtendedProduct,
+	IPersistedProduct,
+	IProductClass,
+} from './product-class.interface';
 import { ProvidersEnum } from '@app/shared/interfaces/providers.enum';
 
 export class PersistedProductClass implements IPersistedProduct, IProductClass {
@@ -13,6 +17,8 @@ export class PersistedProductClass implements IPersistedProduct, IProductClass {
 	availability: boolean;
 	lastUpdated: Date;
 	provider: ProvidersEnum;
+	productId: number;
+	isStale: boolean;
 
 	constructor(
 		id: number,
@@ -44,11 +50,13 @@ export class PersistedProductClass implements IPersistedProduct, IProductClass {
 			availability: this.availability,
 			lastUpdated: this.lastUpdated,
 			provider: this.provider,
+			productId: this.id,
 		};
 	}
 }
 
-export class PersistedExtendedProductClass implements IPersistedExtendedProduct, IProductClass {
+export class PersistedExtendedProductClass
+	implements IPersistedExtendedProduct, IProductClass {
 	id: number;
 	name: string;
 	description?: string | null;
@@ -58,7 +66,9 @@ export class PersistedExtendedProductClass implements IPersistedExtendedProduct,
 	category: string;
 	stock: number;
 	rating?: number | null;
-	provider: ProvidersEnum
+	provider: ProvidersEnum;
+	productId: number;
+	isStale: boolean;
 
 	constructor(
 		id: number,
@@ -70,7 +80,7 @@ export class PersistedExtendedProductClass implements IPersistedExtendedProduct,
 		category: string,
 		stock: number,
 		rating: number | null,
-		provider: ProvidersEnum
+		provider: ProvidersEnum,
 	) {
 		this.id = id;
 		this.name = name;
@@ -94,11 +104,14 @@ export class PersistedExtendedProductClass implements IPersistedExtendedProduct,
 			lastUpdated: this.lastUpdated,
 			availability: this.stock > 0,
 			provider: this.provider,
+			productId: this.id,
 		};
 	}
 }
 
-export function createProduct(data: IPersistedProduct | IPersistedExtendedProduct): PersistedProductClass | PersistedExtendedProductClass {
+export function createProduct(
+	data: IPersistedProduct | IPersistedExtendedProduct,
+): PersistedProductClass | PersistedExtendedProductClass {
 	switch (true) {
 		case isGeneralProduct(data):
 			return new PersistedProductClass(
@@ -109,7 +122,7 @@ export function createProduct(data: IPersistedProduct | IPersistedExtendedProduc
 				data.currency,
 				data.availability,
 				data.lastUpdated,
-				data.provider
+				data.provider,
 			);
 
 		case isExtendedProduct(data):
@@ -123,10 +136,12 @@ export function createProduct(data: IPersistedProduct | IPersistedExtendedProduc
 				data.category,
 				data.stock,
 				data.rating ?? null,
-				data.provider
+				data.provider,
 			);
 
 		default:
-			throw new InternalServerErrorException('Can not create product - Invalid product type');
+			throw new InternalServerErrorException(
+				'Can not create product - Invalid product type',
+			);
 	}
 }
