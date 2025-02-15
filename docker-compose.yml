@@ -5,12 +5,7 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=digital-zone
-    command:
-      [
-        'sh',
-        '-c',
-        'npx prisma generate --schema=./apps/digital-zone/prisma/schema.prisma && npm run start:dev -- digital-zone',
-      ]
+    command: [ 'sh', '-c', 'npx prisma generate --schema=./apps/digital-zone/prisma/schema.prisma && npm run start:dev -- digital-zone' ]
     ports:
       - 3000:3000
     environment:
@@ -29,10 +24,11 @@ services:
       - ./apps/digital-zone:/usr/src/app/apps/digital-zone
       - ./apps/digital-zone/client:/usr/src/app/client
     depends_on:
-      - digital-zone-db
+      digital-zone-db:
+        condition: service_healthy
 
   digital-zone-db:
-    image: postgres:13
+    image: postgres:latest
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -42,6 +38,11 @@ services:
       - ./initial-data:/docker-entrypoint-initdb.d
     ports:
       - 5432:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   provider-one:
     build:
@@ -49,12 +50,7 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=provider-one
-    command:
-      [
-        'sh',
-        '-c',
-        'npx prisma generate --schema=./apps/provider-one/prisma/schema.prisma && npm run start:dev -- provider-one',
-      ]
+    command: [ 'sh', '-c', 'npx prisma generate --schema=./apps/provider-one/prisma/schema.prisma && npm run start:dev -- provider-one' ]
     ports:
       - 3001:3001
     environment:
@@ -70,7 +66,8 @@ services:
       - ./tsconfig.json:/usr/src/app/tsconfig.json
       - ./apps/provider-one:/usr/src/app/apps/provider-one
     depends_on:
-      - digital-zone-db
+      digital-zone-db:
+        condition: service_healthy
 
   provider-two:
     build:
@@ -78,12 +75,7 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=provider-two
-    command:
-      [
-        'sh',
-        '-c',
-        'npx prisma generate --schema=./apps/provider-two/prisma/schema.prisma && npm run start:dev -- provider-two',
-      ]
+    command: [ 'sh', '-c', 'npx prisma generate --schema=./apps/provider-two/prisma/schema.prisma && npm run start:dev -- provider-two' ]
     ports:
       - 3002:3002
     environment:
@@ -99,20 +91,16 @@ services:
       - ./tsconfig.json:/usr/src/app/tsconfig.json
       - ./apps/provider-two:/usr/src/app/apps/provider-two
     depends_on:
-      - digital-zone-db
-      
+      digital-zone-db:
+        condition: service_healthy
+
   provider-three:
     build:
       context: .
       dockerfile: ./Dockerfile
       args:
         - APP_NAME=provider-three
-    command:
-      [
-        'sh',
-        '-c',
-        'npx prisma generate --schema=./apps/provider-three/prisma/schema.prisma && npm run start:dev -- provider-three',
-      ]
+    command: [ 'sh', '-c', 'npx prisma generate --schema=./apps/provider-three/prisma/schema.prisma && npm run start:dev -- provider-three' ]
     ports:
       - 3003:3003
     environment:
@@ -128,6 +116,7 @@ services:
       - ./tsconfig.json:/usr/src/app/tsconfig.json
       - ./apps/provider-three:/usr/src/app/apps/provider-three
     depends_on:
-      - digital-zone-db
+      digital-zone-db:
+        condition: service_healthy
 volumes:
   pg_data:
