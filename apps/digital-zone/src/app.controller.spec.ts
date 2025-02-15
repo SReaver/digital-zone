@@ -4,25 +4,29 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProvidersEnum } from '@app/shared/interfaces/providers.enum';
 import { GetProductsQueryDto } from './dto/get-products.dto';
+import { ConfigModule, ConfigService } from '@nestjs/config'; // Import ConfigModule and ConfigService
+import { ProductUpdatesService } from './events/product-updates.service';
 
 describe('AppController', () => {
   let appController: AppController;
   let appService: AppService;
 
   const mockAppService = {
-    getHello: jest.fn(),
     getProducts: jest.fn(),
-    getProductById: jest.fn()
+    getProductById: jest.fn(),
   };
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
+      imports: [ConfigModule.forRoot()], 
       controllers: [AppController],
       providers: [
         {
           provide: AppService,
           useValue: mockAppService
-        }
+        },
+        ConfigService,
+        ProductUpdatesService,
       ],
     }).compile();
 
@@ -32,16 +36,6 @@ describe('AppController', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('getHello', () => {
-    it('should return hello message', () => {
-      const result = 'Hello World!';
-      mockAppService.getHello.mockReturnValue(result);
-
-      expect(appController.getHello()).toBe(result);
-      expect(mockAppService.getHello).toHaveBeenCalled();
-    });
   });
 
   describe('getProducts', () => {

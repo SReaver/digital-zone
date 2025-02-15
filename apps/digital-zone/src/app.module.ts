@@ -12,12 +12,12 @@ import { join } from 'path';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '../../..', 'client'),
       renderPath: '/',
       exclude: ['/products'],
     }),
-    ConfigModule.forRoot(),
     ScheduleModule.forRoot(),
     HttpModule,
   ],

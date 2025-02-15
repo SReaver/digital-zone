@@ -29,7 +29,7 @@ services:
       - ./apps/digital-zone:/usr/src/app/apps/digital-zone
       - ./apps/digital-zone/client:/usr/src/app/client
   digital-zone-db:
-    image: postgres:latest
+    image: postgres:13
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres

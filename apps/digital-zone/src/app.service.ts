@@ -48,10 +48,6 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
     this.isTestingMode = enabled;
   }
 
-  getHello(): string {
-    return 'Hello World!';
-  }
-
   async fetchData(providers: Provider[]): Promise<(IPersistedProduct | IPersistedExtendedProduct)[]> {
     if (!providers || !providers.length) throw new BadRequestException('No providers provided');
 

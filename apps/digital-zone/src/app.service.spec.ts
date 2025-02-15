@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { AppRepository } from './app.repository';
 import { ProvidersEnum } from '@app/shared/interfaces/providers.enum';
 import { IPersistedProduct } from './factories/product-class.interface';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ProductUpdatesService } from './events/product-updates.service';
 
 describe('AppService', () => {
 	let service: AppService;
@@ -30,10 +32,13 @@ describe('AppService', () => {
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
+			imports: [ConfigModule.forRoot()], // Add ConfigModule to imports
 			providers: [
 				AppService,
 				{ provide: HttpService, useValue: mockHttpService },
-				{ provide: AppRepository, useValue: mockAppRepository }
+				{ provide: AppRepository, useValue: mockAppRepository },
+				ConfigService,
+				ProductUpdatesService, 
 			],
 		}).compile();
 
